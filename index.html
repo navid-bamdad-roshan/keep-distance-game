@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+</head>
+<body>
+
+
+
+
+  <form>
+    <div class="section small_pt pb_70" >
+      <div class="container border border-info rounded-lg" style="margin-top:10px; background:#dcdcdc">
+        <div class="container" >
+          <div class="row justify-content-center">
+            <div class="col-12">
+              <div class="form-group">
+                <div class="row justify-content-center" style="padding:10px; padding-top:20px">
+                  <div class="col-xl-4 col-lg-4 col-md-4 col-12">
+                    <div class="container" style="padding:0px">
+                      <div>
+                        <h5>Number of objects</h5>
+                      </div>
+                      <div>
+                        <input class="form-control" id="object-num-input" type="text" placeholder="Number of objects" value="10">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-xl-4 col-lg-4 col-md-4 col-12">
+                    <div class="container" style="padding:0px">
+                      <div >
+                        <h5>Field width</h5>
+                      </div>
+                      <div>
+                        <input class="form-control" id="canvas-width-input" placeholder="Field width" value="2000">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-xl-4 col-lg-4 col-md-4 col-12">
+                    <div class="container" style="padding:0px">
+                      <div >
+                        <h5>Field height</h5>
+                      </div>
+                      <div>
+                        <input class="form-control" id="canvas-height-input" placeholder="Field height" value="800">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="row justify-content-center" style="padding:10px">
+                  <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-xs-12" style="padding:10px">
+                    <button id="pause-btn" type="button" class="btn btn-success btn-lg btn-block"><h4>Pause/Resume</h4></button>
+                  </div>
+                  <div class="col-xl-4 col-lg-4 col-md-4 col-sm-0 col-xs-0" style="padding:10px"></div>
+                  <div class="col-xl-4 col-lg-4 col-md-4 col-sm-12 col-xs-12" style="padding:10px">
+                    <button id="start-btn" type="button" class="btn btn-primary btn-lg btn-block"><h4>Start</h4></button>
+                  </div>
+
+                </div>
+                <div class="row justify-content-center" style="padding:10px">
+                  <div class="col-xl-4 col-lg-4 col-md-4 col-12">
+                    <div class="container" style="padding:0px">
+                      <label for="speed-input" style="margin:0px"><h5>Speed</h5></label>
+                        <select class="form-control" id="speed-input">
+                          <option value="1">1</option>
+                          <option value="2">2</option>
+                          <option value="3">3</option>
+                          <option value="4">4</option>
+                          <option value="5" selected>5</option>
+                          <option value="6">6</option>
+                          <option value="7">7</option>
+                          <option value="8">8</option>
+                          <option value="9">9</option>
+                          <option value="10">10</option>
+                          <option value="15">15</option>
+                          <option value="20">20</option>
+                        </select>
+                    </div>
+                  </div>
+                  <div class="col-xl-4 col-lg-4 col-md-4 col-12">
+                    <div class="container" style="padding:0px">
+                      <label for="object-distance-input" style="margin:0px"><h5>Object distance</h5></label>
+                        <select class="form-control" id="object-distance-input">
+                          <option value="50">50</option>
+                          <option value="75">75</option>
+                          <option value="100" selected>100</option>
+                          <option value="125">125</option>
+                          <option value="150">150</option>
+                          <option value="200">200</option>
+                          <option value="300">300</option>
+                        </select>
+                    </div>
+                  </div>
+                  <div class="col-xl-4 col-lg-4 col-md-4 col-12">
+                    <div class="container" style="padding:0px">
+                      <label for="cursor-distance-input" style="margin:0px"><h5>Cursor distance</h5></label>
+                        <select class="form-control" id="cursor-distance-input">
+                          <option value="50">50</option>
+                          <option value="75">75</option>
+                          <option value="100" selected>100</option>
+                          <option value="125">125</option>
+                          <option value="150">150</option>
+                          <option value="200">200</option>
+                          <option value="300">300</option>
+                          <option value="400">400</option>
+                          <option value="500">500</option>
+                        </select>
+                    </div>
+                  </div>
+
+                  <div class="col-xl-4 col-lg-4 col-md-4 col-12">
+                    <div class="container" style="padding:0px">
+                      <label for="avoid-rate-input" style="margin:0px"><h5>Avoid rate</h5></label>
+                        <select class="form-control" id="avoid-rate-input">
+                          <option value="0.5">1. May get closer</option>
+                          <option value="1">2. Try to avoid</option>
+                          <option value="2.5" selected>3. Keep distance</option>
+                          <option value="5">4. Keep distance stricktly</option>
+                          <option value="10">5. Keep distance very stricktly</option>
+                        </select>
+                    </div>
+                  </div>
+                  <div class="col-xl-4 col-lg-4 col-md-4 col-12">
+                    <div class="container" style="padding:0px">
+                      <label for="objects-have-same-speed-input" style="margin:0px"><h5>Same speed</h5></label>
+                        <select class="form-control" id="objects-have-same-speed-input">
+                          <option value="true" selected>Yes</option>
+                          <option value="false">No</option>
+                        </select>
+                    </div>
+                  </div>
+                  <div class="col-xl-4 col-lg-4 col-md-4 col-12">
+                    <div class="container" style="padding:0px">
+                      <label for="object-size-input" style="margin:0px"><h5>Object size</h5></label>
+                        <select class="form-control" id="object-size-input">
+                          <option value="0">Random</option>
+                          <option value="5">5</option>
+                          <option value="10">10</option>
+                          <option value="15" selected>15</option>
+                          <option value="20">20</option>
+                          <option value="25">25</option>
+                          <option value="30">30</option>
+                          <option value="35">35</option>
+                          <option value="40">40</option>
+                          <option value="45">45</option>
+                          <option value="50">50</option>
+                        </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </form>
+  <div style="text-align: center;">
+    <div id="canvas-container" class="overflow-auto" style="padding:10px">
+      <canvas id="canvas"></canvas>
+    </div>
+  </div>
+  <script src="lib/ocanvas-2.10.0.min.js"></script>
+  <script type = "text/javascript" src="app.js"></script>
+</body>
+
+</html>
