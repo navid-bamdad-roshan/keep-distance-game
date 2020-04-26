@@ -13,8 +13,34 @@ var avoidRate = 0; // Describes how strict objects should keep the distance
 var objectSize = 0; // Radius size of the objects (0 means random sizes)
 var gameState = "pageLoad"; // Describes state of the game (pageLoad, run, stop)
 var objects = [];
+var points = []; // Absorbing or repelling points
+var canvasPoints = []; // Absorbing or repelling points in canvas
 var canv;
 var gameLoop;
+var canvas; // oCanvas object
+// defining object type
+var movingObject = /** @class */ (function () {
+    function movingObject(x, y, r) {
+        this.x = x;
+        this.y = y;
+        this.radius = r;
+        this.moveX = 0;
+        this.moveY = 0;
+    }
+    return movingObject;
+}());
+// defining object type
+var absorbingRepellingPoint = /** @class */ (function () {
+    function absorbingRepellingPoint(x, y, r, isAbsorbing, absorbAvoidRate, effectDistance) {
+        this.x = x;
+        this.y = y;
+        this.radius = r;
+        this.isAbsorbing = isAbsorbing;
+        this.absorbAvoidRate = absorbAvoidRate;
+        this.effectDistance = effectDistance;
+    }
+    return absorbingRepellingPoint;
+}());
 // Getting access to HTML elements
 var objectNumberInput = document.getElementById("object-num-input");
 objectNumber = Number(objectNumberInput.value);
@@ -43,17 +69,13 @@ else {
 }
 var objectSizeInput = document.getElementById("object-size-input");
 objectSize = Number(objectSizeInput.options[objectSizeInput.selectedIndex].value);
-// defining object type
-var movingObject = /** @class */ (function () {
-    function movingObject(x, y, r) {
-        this.x = x;
-        this.y = y;
-        this.radius = r;
-        this.moveX = 0;
-        this.moveY = 0;
-    }
-    return movingObject;
-}());
+var warningElement = document.getElementById("warning");
+var pointSettingsElement = document.getElementById("point-settings");
+var pointSizeInput = document.getElementById("point-size-input");
+var pointIsAbsorbingInput = document.getElementById("point-is-absorbing-input");
+var pointEffectRateInput = document.getElementById("point-effect-rate-input");
+var pointEffectDistanceInput = document.getElementById("point-effect-distance-input");
+var deleteBtn = document.getElementById("delete-btn");
 // get uniform random number between 0 and max
 function getRandomNumber(max) {
     return (Math.random() * max);
@@ -78,6 +100,35 @@ function modifyMovementVector(A) {
         A.moveY /= length_1;
     }
 }
+function showPointSettings(index) {
+    warningElement.style.visibility = "hidden";
+    pointSettingsElement.style.visibility = "visible";
+    for (var i = 0; i < pointSizeInput.options.length; i++) {
+        if (Number(pointSizeInput.options[i].value) === points[index].radius) {
+            pointSizeInput.selectedIndex = i;
+            i = pointSizeInput.options.length;
+        }
+    }
+    if (points[index].isAbsorbing) {
+        pointIsAbsorbingInput.selectedIndex = 0;
+    }
+    else {
+        pointIsAbsorbingInput.selectedIndex = 1;
+    }
+    for (var i = 0; i < pointEffectRateInput.options.length; i++) {
+        if (Number(pointEffectRateInput.options[i].value) === points[index].absorbAvoidRate) {
+            pointEffectRateInput.selectedIndex = i;
+            i = pointEffectRateInput.options.length;
+        }
+    }
+    for (var i = 0; i < pointEffectDistanceInput.options.length; i++) {
+        if (Number(pointEffectDistanceInput.options[i].value) === points[index].effectDistance) {
+            pointEffectDistanceInput.selectedIndex = i;
+            i = pointEffectDistanceInput.options.length;
+        }
+    }
+    deleteBtn.setAttribute("pointIndex", index.toString());
+}
 // setting the playgroung background image
 var img = new Image();
 img.src = 'img/background.jpg';
@@ -87,6 +138,32 @@ img.onload = function () {
     canvas.setAttribute("height", canvasHeight.toString());
     canvas.getContext("2d").drawImage(img, 0, 0, canvasWidth, canvasHeight);
 };
+// To add or remove absorbing or repelling point
+function AddOrRemovePoint() {
+    if (gameState == "run" || gameState == "stop") {
+        var pointIndex = -1;
+        warningElement.style.visibility = 'hidden';
+        pointSettingsElement.style.visibility = "visible";
+        // finding the clicked point
+        for (var i = points.length - 1; i >= 0; i--) {
+            if (getObjectDistance(canvas.mouse, points[i]) <= points[i].radius) {
+                pointIndex = i;
+                i = -1;
+            }
+        }
+        if (pointIndex >= 0) { // Selecting the clicked point
+            showPointSettings(pointIndex);
+        }
+        else { // adding point
+            var p = new absorbingRepellingPoint(canvas.mouse.x, canvas.mouse.y, 15, true, 2.5, 100);
+            var canvasPoint = canvas.display.ellipse({ x: p.x, y: p.y, radius: p.radius, fill: "#fff" });
+            canvas.addChild(canvasPoint);
+            canvasPoints.push(canvasPoint);
+            points.push(p);
+            showPointSettings(points.length - 1);
+        }
+    }
+}
 function start() {
     try {
         // stop previous canvas loop
@@ -117,7 +194,7 @@ function start() {
     canv.setAttribute("height", canvasHeight.toString());
     canv.setAttribute("style", "border:1px solid black");
     // using oCanvas library
-    var canvas = oCanvas.create({
+    canvas = oCanvas.create({
         canvas: canv,
         fps: 40
     });
@@ -129,6 +206,7 @@ function start() {
     });
     canvas.addChild(image);
     // adding oCanvas object to HTML
+    canv.addEventListener("click", AddOrRemovePoint);
     canvasDiv.appendChild(canv);
     // crearing objects and adding them to oCanvas
     objects = [];
@@ -141,12 +219,19 @@ function start() {
         canvas.addChild(canvasObject);
         objects.push(canvasObject);
     }
+    canvasPoints = [];
+    for (var i_2 = 0; i_2 < points.length; i_2++) {
+        var p = points[i_2];
+        var canvasPoint = canvas.display.ellipse({ x: p.x, y: p.y, radius: p.radius, fill: "#fff" });
+        canvas.addChild(canvasPoint);
+        canvasPoints.push(canvasPoint);
+    }
     // Generating random movements for objects
-    for (var i_2 = 0; i_2 < objectNumber; i_2++) {
-        objects[i_2].moveX = getRandomNumber(2) - 1;
-        objects[i_2].moveY = getRandomNumber(2) - 1;
+    for (var i_3 = 0; i_3 < objectNumber; i_3++) {
+        objects[i_3].moveX = getRandomNumber(2) - 1;
+        objects[i_3].moveY = getRandomNumber(2) - 1;
         if (haveSameSpeed) {
-            modifyMovementVector(objects[i_2]);
+            modifyMovementVector(objects[i_3]);
         }
     }
     // Creating a 2D array for storing the objects distance matrix
@@ -155,61 +240,81 @@ function start() {
         objectDistances[i] = new Array(objectNumber);
     }
     gameLoop = canvas.setLoop(function () {
+        // Creating a 2D array for storing the objects and absorbing or repelling points distance matrix
+        var objectPointDistances = new Array(points.length);
+        for (var i = 0; i < points.length; i++) {
+            objectPointDistances[i] = new Array(objectNumber);
+        }
         // Calculating the distance of objects
-        for (var i_3 = 0; i_3 < objectNumber; i_3++) {
-            for (var j = i_3; j < objectNumber; j++) {
-                var d = getObjectDistance(objects[i_3], objects[j]); // gets the distance of center points
+        for (var i_4 = 0; i_4 < objectNumber; i_4++) {
+            for (var j = i_4; j < objectNumber; j++) {
+                var d = getObjectDistance(objects[i_4], objects[j]); // gets the distance of center points
                 if (objectSize === 0) { // objects have random radiuses
-                    var radiuses = objects[i_3].radius + objects[j].radius;
-                    objectDistances[i_3][j] = d - (radiuses);
-                    objectDistances[j][i_3] = d - (radiuses);
+                    var radiuses = objects[i_4].radius + objects[j].radius;
+                    objectDistances[i_4][j] = d - (radiuses);
+                    objectDistances[j][i_4] = d - (radiuses);
                 }
                 else {
-                    objectDistances[i_3][j] = d - (objectSize);
-                    objectDistances[j][i_3] = d - (objectSize);
+                    objectDistances[i_4][j] = d - (objectSize);
+                    objectDistances[j][i_4] = d - (objectSize);
                 }
             }
         }
         // Calculating the distance of cursor from objects
         var cursorDistance = new Array(objectNumber);
-        for (var i_4 = 0; i_4 < objectNumber; i_4++) {
-            cursorDistance[i_4] = getObjectDistance(objects[i_4], canvas.mouse) - objects[i_4].radius;
+        for (var i_5 = 0; i_5 < objectNumber; i_5++) {
+            cursorDistance[i_5] = getObjectDistance(objects[i_5], canvas.mouse) - objects[i_5].radius;
+        }
+        // Calculating the distance of objects from absorbing or repelling points
+        for (var i_6 = 0; i_6 < objectPointDistances.length; i_6++) {
+            for (var j = 0; j < objectNumber; j++) {
+                objectPointDistances[i_6][j] = getObjectDistance(points[i_6], objects[j]) - objects[j].radius - points[i_6].radius;
+            }
         }
         // Changing the movement direction of the objects
-        for (var i_5 = 0; i_5 < objectNumber; i_5++) {
+        for (var i_7 = 0; i_7 < objectNumber; i_7++) {
             if (getRandomNumber(1) > 0.9) { // change previous moving direction a lot with probability of 0.1
-                objects[i_5].moveX += (getRandomNumber(2) - 1);
-                objects[i_5].moveY += (getRandomNumber(2) - 1);
+                objects[i_7].moveX += (getRandomNumber(2) - 1);
+                objects[i_7].moveY += (getRandomNumber(2) - 1);
             }
             else { // change previous moving direction a bit with probability of 0.9
-                objects[i_5].moveX += (getRandomNumber(0.2) - 0.1);
-                objects[i_5].moveY += (getRandomNumber(0.2) - 0.1);
+                objects[i_7].moveX += (getRandomNumber(0.2) - 0.1);
+                objects[i_7].moveY += (getRandomNumber(0.2) - 0.1);
             }
             // keeping movement vectors in -1 and 1 range
-            if (Math.abs(objects[i_5].moveX) > 1) {
-                objects[i_5].moveY /= Math.abs(objects[i_5].moveX);
-                objects[i_5].moveX /= Math.abs(objects[i_5].moveX);
+            if (Math.abs(objects[i_7].moveX) > 1) {
+                objects[i_7].moveY /= Math.abs(objects[i_7].moveX);
+                objects[i_7].moveX /= Math.abs(objects[i_7].moveX);
             }
-            if (Math.abs(objects[i_5].moveY) > 1) {
-                objects[i_5].moveX /= Math.abs(objects[i_5].moveY);
-                objects[i_5].moveY /= Math.abs(objects[i_5].moveY);
+            if (Math.abs(objects[i_7].moveY) > 1) {
+                objects[i_7].moveX /= Math.abs(objects[i_7].moveY);
+                objects[i_7].moveY /= Math.abs(objects[i_7].moveY);
             }
-            modifyMovementVector(objects[i_5]);
+            modifyMovementVector(objects[i_7]);
         }
-        // process of keeping distance
-        for (var i_6 = 0; i_6 < objectNumber; i_6++) {
-            var obj = objects[i_6];
+        // process of keeping distances and functioning of points
+        for (var i_8 = 0; i_8 < objectNumber; i_8++) {
+            var obj = objects[i_8];
             var nearObjects = [];
             var weights = [];
+            var nearPoints = [];
+            var pointsWeights = [];
+            // finding nearby objects, points or cursor
             for (var j = 0; j < objectNumber; j++) {
-                if ((objectDistances[i_6][j] < legalDistance) && !(i_6 == j)) {
+                if ((objectDistances[i_8][j] < legalDistance) && !(i_8 == j)) {
                     nearObjects.push(j);
-                    weights.push(((legalDistance) - objectDistances[i_6][j]) / (legalDistance)); // the closer objects are, the higher weight (weight range:0 - 1)
+                    weights.push(((legalDistance) - objectDistances[i_8][j]) / (legalDistance)); // the closer objects are, the higher weight is (weight range:0 - 1)
                 }
             }
-            if (cursorDistance[i_6] < legalDistanceOfCursor) {
+            for (var j = 0; j < points.length; j++) {
+                if ((objectPointDistances[j][i_8] < points[j].effectDistance)) {
+                    nearPoints.push(j);
+                    pointsWeights.push(((points[j].effectDistance) - objectPointDistances[j][i_8]) / (points[j].effectDistance)); // the closer objects are, the higher weight is (weight range:0 - 1)
+                }
+            }
+            if (cursorDistance[i_8] < legalDistanceOfCursor) {
                 nearObjects.push(-1);
-                weights.push(((legalDistanceOfCursor) - cursorDistance[i_6]) / (legalDistanceOfCursor / 10)); // the closer object is to cursor, the higher weight (weight range:0 - 10) (avoiding the cursor is 10 times more important than the avoiding other objects)
+                weights.push(((legalDistanceOfCursor) - cursorDistance[i_8]) / (legalDistanceOfCursor / 10)); // the closer object is to cursor, the higher weight (weight range:0 - 10) (avoiding the cursor is 10 times more important than the avoiding other objects)
             }
             // pushing objects away from each other and from the cursor
             for (var j = 0; j < nearObjects.length; j++) {
@@ -228,6 +333,23 @@ function start() {
                 obj.moveX += (vector.x * weights[j]);
                 obj.moveY += (vector.y * weights[j]);
             }
+            for (var j = 0; j < nearPoints.length; j++) {
+                var vector = void 0;
+                var p = points[nearPoints[j]];
+                if (p.isAbsorbing) { // point is absorbing other objects
+                    vector = getVector(obj, p);
+                }
+                else { // point is repelling other objects
+                    vector = getVector(p, obj);
+                }
+                var length_3 = getDistance(0, 0, vector.x, vector.y);
+                vector.x /= length_3;
+                vector.y /= length_3;
+                vector.x *= p.absorbAvoidRate;
+                vector.y *= p.absorbAvoidRate;
+                obj.moveX += (vector.x * pointsWeights[j]);
+                obj.moveY += (vector.y * pointsWeights[j]);
+            }
             // keeping movement vectors in -1 and 1 range
             if (Math.abs(obj.moveX) > 1) {
                 obj.moveY /= Math.abs(obj.moveX);
@@ -240,8 +362,8 @@ function start() {
             modifyMovementVector(obj);
         }
         // Preventing objects from exiting the canvas
-        for (var i_7 = 0; i_7 < objects.length; i_7++) {
-            var obj = objects[i_7];
+        for (var i_9 = 0; i_9 < objects.length; i_9++) {
+            var obj = objects[i_9];
             if (obj.x + obj.moveX + obj.radius + 1 >= canvasWidth) {
                 if (obj.y + obj.moveY + obj.radius + 1 >= canvasHeight) { // Bottom right corner
                     obj.moveX -= 1;
@@ -284,8 +406,8 @@ function start() {
             }
         }
         // Move the objects in canvas
-        for (var i_8 = 0; i_8 < objectNumber; i_8++) {
-            var obj = objects[i_8];
+        for (var i_10 = 0; i_10 < objectNumber; i_10++) {
+            var obj = objects[i_10];
             obj.move(obj.moveX * speed, obj.moveY * speed);
         }
     });
@@ -345,3 +467,42 @@ function objectSizeChange() {
     }
 }
 objectSizeInput.addEventListener("change", objectSizeChange);
+function deletePoint() {
+    var index = Number(deleteBtn.getAttribute("pointIndex"));
+    canvasPoints[index].remove();
+    canvasPoints.splice(index, 1);
+    points.splice(index, 1);
+    pointSettingsElement.style.visibility = "hidden";
+    warningElement.style.visibility = "visible";
+}
+deleteBtn.addEventListener("click", deletePoint);
+function pointSizeChange() {
+    var size = Number(pointSizeInput.options[pointSizeInput.selectedIndex].value);
+    var index = Number(deleteBtn.getAttribute("pointIndex"));
+    points[index].radius = size;
+    canvasPoints[index].radius = size;
+}
+pointSizeInput.addEventListener("change", pointSizeChange);
+function pointTypeChange() {
+    var type = Number(pointIsAbsorbingInput.options[pointIsAbsorbingInput.selectedIndex].value);
+    var index = Number(deleteBtn.getAttribute("pointIndex"));
+    if (type === 0) {
+        points[index].isAbsorbing = false;
+    }
+    else {
+        points[index].isAbsorbing = true;
+    }
+}
+pointIsAbsorbingInput.addEventListener("change", pointTypeChange);
+function pointEffectRateChange() {
+    var effectRate = Number(pointEffectRateInput.options[pointEffectRateInput.selectedIndex].value);
+    var index = Number(deleteBtn.getAttribute("pointIndex"));
+    points[index].absorbAvoidRate = effectRate;
+}
+pointEffectRateInput.addEventListener("change", pointEffectRateChange);
+function pointEffectDistanceChange() {
+    var effectDistance = Number(pointEffectDistanceInput.options[pointEffectDistanceInput.selectedIndex].value);
+    var index = Number(deleteBtn.getAttribute("pointIndex"));
+    points[index].effectDistance = effectDistance;
+}
+pointEffectDistanceInput.addEventListener("change", pointEffectDistanceChange);
